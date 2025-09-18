@@ -1,670 +1,818 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoice Generator - Home</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Invoice Generator - Akash</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            overflow: hidden;
-            min-height: calc(100vh - 40px);
-        }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        min-height: calc(100vh - 40px);
+      }
 
-        .header {
-            background: linear-gradient(45deg, #4CAF50, #45a049);
-            color: white;
-            padding: 30px;
-            text-align: center;
+      .header {
+        background: linear-gradient(45deg, #4caf50, #45a049);
+        color: white;
+        padding: 30px;
+        text-align: center;
+      }
+
+      .header h1 {
+        font-size: 2.5em;
+        margin-bottom: 10px;
+      }
+
+      .header p {
+        font-size: 1.1em;
+        opacity: 0.9;
+      }
+
+      .main-content {
+        display: grid;
+        grid-template-columns: 1fr 400px;
+        gap: 30px;
+        padding: 30px;
+      }
+
+      .order-section {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 30px;
+        border: 2px solid #e9ecef;
+      }
+
+      .section-title {
+        font-size: 1.5em;
+        color: #333;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .product-selector {
+        margin-bottom: 30px;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #555;
+      }
+
+      select,
+      input {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        font-size: 1em;
+        transition: all 0.3s ease;
+        background: white;
+      }
+
+      select:focus,
+      input:focus {
+        outline: none;
+        border-color: #4caf50;
+        box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+      }
+
+      .quantity-input-group {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        align-items: end;
+      }
+
+      .unit-label {
+        padding: 12px 15px;
+        background: #e9ecef;
+        border-radius: 10px;
+        font-weight: 600;
+        color: #666;
+        border: 2px solid #e0e0e0;
+      }
+
+      .price-display {
+        background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+        color: white;
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+        margin: 15px 0;
+        font-size: 1.2em;
+        font-weight: bold;
+      }
+
+      .add-btn {
+        background: linear-gradient(45deg, #4caf50, #45a049);
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        border-radius: 10px;
+        font-size: 1.1em;
+        font-weight: 600;
+        cursor: pointer;
+        width: 100%;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+      }
+
+      .add-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+      }
+
+      .cart-section {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        border: 2px solid #e9ecef;
+        height: fit-content;
+        position: sticky;
+        top: 20px;
+      }
+
+      .cart-items {
+        margin-bottom: 20px;
+        max-height: 400px;
+        overflow-y: auto;
+      }
+
+      .cart-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        border-left: 4px solid #4caf50;
+      }
+
+      .cart-item-info {
+        flex: 1;
+      }
+
+      .cart-item-name {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 5px;
+      }
+
+      .cart-item-details {
+        font-size: 0.9em;
+        color: #666;
+      }
+
+      .cart-item-price {
+        font-weight: 700;
+        color: #4caf50;
+        font-size: 1.1em;
+        text-align: right;
+      }
+
+      .cart-item-tax {
+        font-size: 0.9em;
+        color: #ff6b35;
+        font-weight: 600;
+      }
+
+      .cart-item-subtotal {
+        font-size: 0.85em;
+        color: #666;
+      }
+
+      .remove-btn {
+        background: #ff4757;
+        color: white;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        margin-left: 10px;
+        transition: all 0.3s ease;
+      }
+
+      .remove-btn:hover {
+        background: #ff3742;
+        transform: scale(1.05);
+      }
+
+      .empty-cart {
+        text-align: center;
+        color: #999;
+        font-style: italic;
+        padding: 40px 20px;
+      }
+
+      .cart-total {
+        border-top: 2px solid #e9ecef;
+        padding-top: 20px;
+        margin-bottom: 20px;
+      }
+
+      .total-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        font-size: 1em;
+      }
+
+      .total-row.subtotal {
+        color: #666;
+      }
+
+      .total-row.tax {
+        color: #ff6b35;
+        font-weight: 600;
+      }
+
+      .final-total {
+        font-size: 1.4em;
+        font-weight: bold;
+        color: #333;
+        border-top: 2px solid #e9ecef;
+        padding-top: 15px;
+        margin-top: 10px;
+      }
+
+      .tax-info {
+        font-size: 0.85em;
+        color: #888;
+        font-style: italic;
+      }
+
+      .proceed-btn {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+        padding: 18px 30px;
+        border-radius: 12px;
+        font-size: 1.2em;
+        font-weight: 600;
+        cursor: pointer;
+        width: 100%;
+        transition: all 0.3s ease;
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+      }
+
+      .proceed-btn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+      }
+
+      .proceed-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .loading {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 2px solid #ffffff;
+        border-radius: 50%;
+        border-top-color: transparent;
+        animation: spin 1s linear infinite;
+        margin-right: 10px;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .error {
+        background: #ffebee;
+        color: #c62828;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        border-left: 4px solid #c62828;
+      }
+
+      @media (max-width: 768px) {
+        .main-content {
+          grid-template-columns: 1fr;
+          gap: 20px;
         }
 
         .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
+          font-size: 2em;
         }
 
-        .header p {
-            font-size: 1.1em;
-            opacity: 0.9;
+        .container {
+          margin: 10px;
+          min-height: calc(100vh - 20px);
         }
-
-        .main-content {
-            display: grid;
-            grid-template-columns: 1fr 400px;
-            gap: 30px;
-            padding: 30px;
-        }
-
-        .order-section {
-            background: #f8f9fa;
-            border-radius: 15px;
-            padding: 30px;
-            border: 2px solid #e9ecef;
-        }
-
-        .section-title {
-            font-size: 1.5em;
-            color: #333;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .product-selector {
-            margin-bottom: 30px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #555;
-        }
-
-        select, input {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 1em;
-            transition: all 0.3s ease;
-            background: white;
-        }
-
-        select:focus, input:focus {
-            outline: none;
-            border-color: #4CAF50;
-            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
-        }
-
-        .quantity-input-group {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 10px;
-            align-items: end;
-        }
-
-        .unit-label {
-            padding: 12px 15px;
-            background: #e9ecef;
-            border-radius: 10px;
-            font-weight: 600;
-            color: #666;
-            border: 2px solid #e0e0e0;
-        }
-
-        .price-display {
-            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
-            color: white;
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-            margin: 15px 0;
-            font-size: 1.2em;
-            font-weight: bold;
-        }
-
-        .add-btn {
-            background: linear-gradient(45deg, #4CAF50, #45a049);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 10px;
-            font-size: 1.1em;
-            font-weight: 600;
-            cursor: pointer;
-            width: 100%;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
-        }
-
-        .add-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
-        }
-
-        .cart-section {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            border: 2px solid #e9ecef;
-            height: fit-content;
-            position: sticky;
-            top: 20px;
-        }
-
-        .cart-items {
-            margin-bottom: 20px;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        .cart-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            border-left: 4px solid #4CAF50;
-        }
-
-        .cart-item-info {
-            flex: 1;
-        }
-
-        .cart-item-name {
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 5px;
-        }
-
-        .cart-item-details {
-            font-size: 0.9em;
-            color: #666;
-        }
-
-        .cart-item-price {
-            font-weight: 700;
-            color: #4CAF50;
-            font-size: 1.1em;
-            text-align: right;
-        }
-
-        .cart-item-tax {
-            font-size: 0.9em;
-            color: #ff6b35;
-            font-weight: 600;
-        }
-
-        .cart-item-subtotal {
-            font-size: 0.85em;
-            color: #666;
-        }
-
-        .remove-btn {
-            background: #ff4757;
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-left: 10px;
-            transition: all 0.3s ease;
-        }
-
-        .remove-btn:hover {
-            background: #ff3742;
-            transform: scale(1.05);
-        }
-
-        .empty-cart {
-            text-align: center;
-            color: #999;
-            font-style: italic;
-            padding: 40px 20px;
-        }
-
-        .cart-total {
-            border-top: 2px solid #e9ecef;
-            padding-top: 20px;
-            margin-bottom: 20px;
-        }
-
-        .total-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 12px;
-            font-size: 1em;
-        }
-
-        .total-row.subtotal {
-            color: #666;
-        }
-
-        .total-row.tax {
-            color: #ff6b35;
-            font-weight: 600;
-        }
-
-        .final-total {
-            font-size: 1.4em;
-            font-weight: bold;
-            color: #333;
-            border-top: 2px solid #e9ecef;
-            padding-top: 15px;
-            margin-top: 10px;
-        }
-
-        .tax-info {
-            font-size: 0.85em;
-            color: #888;
-            font-style: italic;
-        }
-
-        .proceed-btn {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            padding: 18px 30px;
-            border-radius: 12px;
-            font-size: 1.2em;
-            font-weight: 600;
-            cursor: pointer;
-            width: 100%;
-            transition: all 0.3s ease;
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
-        }
-
-        .proceed-btn:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-        }
-
-        .proceed-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 2px solid #ffffff;
-            border-radius: 50%;
-            border-top-color: transparent;
-            animation: spin 1s linear infinite;
-            margin-right: 10px;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .error {
-            background: #ffebee;
-            color: #c62828;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            border-left: 4px solid #c62828;
-        }
-
-        @media (max-width: 768px) {
-            .main-content {
-                grid-template-columns: 1fr;
-                gap: 20px;
-            }
-
-            .header h1 {
-                font-size: 2em;
-            }
-
-            .container {
-                margin: 10px;
-                min-height: calc(100vh - 20px);
-            }
-        }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <div class="header">
-            <h1>🏪 Invoice Generator</h1>
-            <p>Create professional invoices for your customers</p>
-        </div>
+      <div class="header">
+        <h1>Akash Provisional Store</h1>
+        <p>Create professional invoices for your customers</p>
+      </div>
 
-        <div class="main-content">
-            <div class="order-section">
-                <h2 class="section-title">
-                    📦 Add Items to Order
-                </h2>
+      <div class="main-content">
+        <div class="order-section">
+          <h2 class="section-title">Add Items to Order</h2>
 
-                <div id="error-message" class="error" style="display: none;"></div>
+          <div id="error-message" class="error" style="display: none"></div>
 
-                <div class="product-selector">
-                    <div class="form-group">
-                        <label for="product-select">Select Product</label>
-                        <select id="product-select">
-                            <option value="">Loading products...</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="quantity-input">Quantity</label>
-                        <div class="quantity-input-group">
-                            <input type="number" id="quantity-input" placeholder="Enter quantity" min="1" step="1">
-                            <div class="unit-label" id="unit-display">grams</div>
-                        </div>
-                    </div>
-
-                    <div class="price-display" id="price-display">
-                        Select product and enter quantity
-                    </div>
-
-                    <button class="add-btn" id="add-to-cart-btn" onclick="addToCart()">
-                        ➕ Add to Cart
-                    </button>
-                </div>
+          <div class="product-selector">
+            <div class="form-group">
+              <label for="product-select">Select Product</label>
+              <select id="product-select">
+                <option value="">Loading products...</option>
+              </select>
             </div>
 
-            <div class="cart-section">
-                <h2 class="section-title">
-                    🛒 Order Summary
-                </h2>
-
-                <div class="cart-items" id="cart-items">
-                    <div class="empty-cart">
-                        Your cart is empty. Add some products to get started!
-                    </div>
-                </div>
-
-                <div class="cart-total" id="cart-total" style="display: none;">
-                    <div class="total-row subtotal">
-                        <span>Subtotal (before tax):</span>
-                        <span id="subtotal">₹0.00</span>
-                    </div>
-                    <div class="total-row tax">
-                        <span>Tax Amount:</span>
-                        <span id="tax-total">₹0.00</span>
-                    </div>
-                    <div class="total-row final-total">
-                        <span>Total Amount:</span>
-                        <span id="total">₹0.00</span>
-                    </div>
-                </div>
-
-                <button class="proceed-btn" id="proceed-btn" onclick="proceedToPayment()" disabled>
-                    💳 Proceed to Payment
-                </button>
+            <div class="form-group">
+              <label for="quantity-input">Quantity</label>
+              <div class="quantity-input-group">
+                <input
+                  type="number"
+                  id="quantity-input"
+                  placeholder="Enter quantity"
+                  min="1"
+                  step="1"
+                />
+                <div class="unit-label" id="unit-display">grams</div>
+              </div>
             </div>
+
+            <!-- <div class="price-display" id="price-display">
+              Select product and enter quantity
+            </div> -->
+
+            <button class="add-btn" id="add-to-cart-btn" onclick="addToCart()">
+              Add to Cart
+            </button>
+          </div>
         </div>
+
+        <div class="cart-section">
+          <h2 class="section-title">🛒 Order Summary</h2>
+
+          <div class="cart-items" id="cart-items">
+            <div class="empty-cart">
+              Your cart is empty. Add some products to get started!
+            </div>
+          </div>
+
+          <div class="cart-total" id="cart-total" style="display: none">
+            <div class="total-row subtotal">
+              <span>Subtotal (before tax):</span>
+              <span id="subtotal">₹0.00</span>
+            </div>
+            <div class="total-row tax">
+              <span>Tax Amount:</span>
+              <span id="tax-total">₹0.00</span>
+            </div>
+            <div class="total-row final-total">
+              <span>Total Amount:</span>
+              <span id="total">₹0.00</span>
+            </div>
+          </div>
+
+          <button
+            class="proceed-btn"
+            id="proceed-btn"
+            onclick="proceedToPayment()"
+            disabled
+          >
+            💳 Proceed to Payment
+          </button>
+        </div>
+      </div>
     </div>
-
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script>
-        let products = [];
-        let cart = [];
-        let selectedProduct = null;
+      let products = [];
+      let cart = [];
+      let selectedProduct = null;
 
-        // Load products on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            loadProducts();
-        });
+      // Load products on page load
+      document.addEventListener("DOMContentLoaded", function () {
+        loadProducts();
+      });
 
-        async function loadProducts() {
-            try {
-                const response = await fetch('http://localhost:3000/api/get-products');
-                if (!response.ok) {
-                    throw new Error('Failed to load products');
-                }
-                
-                products = await response.json();
-                populateProductSelect();
-                hideError();
-            } catch (error) {
-                console.error('Error loading products:', error);
-                showError('Failed to load products. Please check your connection and try again.');
-            }
+      async function loadProducts() {
+        try {
+          const response = await fetch(
+            "http://localhost:3000/api/get-products"
+          );
+          if (!response.ok) {
+            throw new Error("Failed to load products");
+          }
+
+          const data = await response.json();
+
+          // Expecting { success: true, products: [...] }
+          if (data && Array.isArray(data.products)) {
+            products = data.products; // ✅ Correct
+          } else if (Array.isArray(data)) {
+            products = data; // fallback
+          } else {
+            console.error("Unexpected data format:", data);
+            throw new Error("Invalid data format");
+          }
+
+          populateProductSelect();
+          hideError();
+        } catch (error) {
+          console.error("Error loading products:", error);
+          showError(
+            "Failed to load products. Please check your connection and try again."
+          );
         }
+      }
 
-        function populateProductSelect() {
-            const select = document.getElementById('product-select');
-            select.innerHTML = '<option value="">Choose a product...</option>';
-            
-            products.forEach(product => {
-                const option = document.createElement('option');
-                option.value = product.id || product.name;
-                option.textContent = product.name;
-                option.dataset.price = product.price;
-                option.dataset.unit = product.unit || 'kg';
-                option.dataset.tax = product.tax || 0; // Tax percentage or amount
-                option.dataset.taxType = product.taxType || 'percentage'; // 'percentage' or 'fixed'
-                select.appendChild(option);
-            });
+      function populateProductSelect() {
+        const select = document.getElementById("product-select");
+        select.innerHTML = '<option value="">Choose a product...</option>';
+
+        if (Array.isArray(products)) {
+          products.forEach((product) => {
+            const option = document.createElement("option");
+            option.value = product._id?.$oid || product.id || product.name;
+            option.textContent = product.name;
+            option.dataset.price = product.price;
+            option.dataset.unit = product.unit || "kg";
+            option.dataset.tax = product.tax || 0;
+            option.dataset.taxType = product.taxType || "percentage";
+            select.appendChild(option);
+          });
+        } else {
+          console.error("Products is not an array:", products);
+          select.innerHTML = '<option value="">Error loading products</option>';
         }
+      }
 
-        function showError(message) {
-            const errorDiv = document.getElementById('error-message');
-            errorDiv.textContent = message;
-            errorDiv.style.display = 'block';
-        }
+      function showError(message) {
+        const errorDiv = document.getElementById("error-message");
+        errorDiv.textContent = message;
+        errorDiv.style.display = "block";
+      }
 
-        function hideError() {
-            document.getElementById('error-message').style.display = 'none';
-        }
+      function hideError() {
+        document.getElementById("error-message").style.display = "none";
+      }
 
-        document.getElementById('product-select').addEventListener('change', function() {
-            const selectedOption = this.options[this.selectedIndex];
-            if (selectedOption.value) {
-                selectedProduct = {
-                    id: selectedOption.value,
-                    name: selectedOption.textContent,
-                    price: parseFloat(selectedOption.dataset.price),
-                    unit: selectedOption.dataset.unit || 'kg',
-                    tax: parseFloat(selectedOption.dataset.tax) || 0,
-                    taxType: selectedOption.dataset.taxType || 'percentage'
-                };
-                updateUnitDisplay();
-                calculatePrice();
-            } else {
-                selectedProduct = null;
-                updatePriceDisplay('Select product and enter quantity');
-            }
-        });
-
-        document.getElementById('quantity-input').addEventListener('input', calculatePrice);
-
-        function updateUnitDisplay() {
-            const unitDisplay = document.getElementById('unit-display');
-            if (selectedProduct) {
-                unitDisplay.textContent = selectedProduct.unit === 'kg' ? 'grams' : selectedProduct.unit;
-            }
-        }
-
-        function calculatePrice() {
-            if (!selectedProduct) return;
-            
-            const quantity = parseFloat(document.getElementById('quantity-input').value);
-            if (!quantity || quantity <= 0) {
-                updatePriceDisplay('Enter quantity to see price');
-                return;
-            }
-
-            // Convert grams to kg if the product is priced per kg
-            let calculatedQuantity = quantity;
-            if (selectedProduct.unit === 'kg') {
-                calculatedQuantity = quantity / 1000; // Convert grams to kg
-            }
-
-            const basePrice = selectedProduct.price * calculatedQuantity;
-            
-            // Calculate tax
-            let taxAmount = 0;
-            if (selectedProduct.tax > 0) {
-                if (selectedProduct.taxType === 'percentage') {
-                    taxAmount = basePrice * (selectedProduct.tax / 100);
-                } else {
-                    // Fixed tax amount
-                    taxAmount = selectedProduct.tax * calculatedQuantity;
-                }
-            }
-            
-            const totalPrice = basePrice + taxAmount;
-            
-            // Create detailed price display
-            let priceText = `Base: ₹${basePrice.toFixed(2)}`;
-            if (taxAmount > 0) {
-                const taxDisplay = selectedProduct.taxType === 'percentage' 
-                    ? `${selectedProduct.tax}%` 
-                    : `₹${selectedProduct.tax}`;
-                priceText += ` + Tax (${taxDisplay}): ₹${taxAmount.toFixed(2)}`;
-            }
-            priceText += ` = ₹${totalPrice.toFixed(2)}`;
-            priceText += ` for ${quantity} ${selectedProduct.unit === 'kg' ? 'grams' : selectedProduct.unit}`;
-            
-            updatePriceDisplay(priceText);
-        }
-
-        function updatePriceDisplay(text) {
-            document.getElementById('price-display').textContent = text;
-        }
-
-        function addToCart() {
-            if (!selectedProduct) {
-                showError('Please select a product');
-                return;
-            }
-
-            const quantity = parseFloat(document.getElementById('quantity-input').value);
-            if (!quantity || quantity <= 0) {
-                showError('Please enter a valid quantity');
-                return;
-            }
-
-            // Convert grams to kg if needed for calculation
-            let calculatedQuantity = quantity;
-            if (selectedProduct.unit === 'kg') {
-                calculatedQuantity = quantity / 1000;
-            }
-
-            const basePrice = selectedProduct.price * calculatedQuantity;
-            
-            // Calculate tax
-            let taxAmount = 0;
-            if (selectedProduct.tax > 0) {
-                if (selectedProduct.taxType === 'percentage') {
-                    taxAmount = basePrice * (selectedProduct.tax / 100);
-                } else {
-                    taxAmount = selectedProduct.tax * calculatedQuantity;
-                }
-            }
-            
-            const totalPrice = basePrice + taxAmount;
-
-            const cartItem = {
-                id: Date.now(), // Simple ID for removal
-                productId: selectedProduct.id,
-                name: selectedProduct.name,
-                quantity: quantity,
-                unit: selectedProduct.unit === 'kg' ? 'grams' : selectedProduct.unit,
-                price: selectedProduct.price,
-                basePrice: basePrice,
-                tax: selectedProduct.tax,
-                taxType: selectedProduct.taxType,
-                taxAmount: taxAmount,
-                totalPrice: totalPrice
+      document
+        .getElementById("product-select")
+        .addEventListener("change", function () {
+          const selectedOption = this.options[this.selectedIndex];
+          if (selectedOption.value) {
+            selectedProduct = {
+              id: selectedOption.value,
+              name: selectedOption.textContent,
+              price: parseFloat(selectedOption.dataset.price),
+              unit: selectedOption.dataset.unit || "kg",
+              tax: parseFloat(selectedOption.dataset.tax) || 0,
+              taxType: selectedOption.dataset.taxType || "percentage",
             };
-
-            cart.push(cartItem);
-            updateCartDisplay();
-            
-            // Reset form
-            document.getElementById('product-select').value = '';
-            document.getElementById('quantity-input').value = '';
+            updateUnitDisplay();
+            calculatePrice();
+          } else {
             selectedProduct = null;
-            updatePriceDisplay('Select product and enter quantity');
-            hideError();
+            updatePriceDisplay("Select product and enter quantity");
+          }
+        });
+
+      document
+        .getElementById("quantity-input")
+        .addEventListener("input", calculatePrice);
+
+      function updateUnitDisplay() {
+        const unitDisplay = document.getElementById("unit-display");
+        if (selectedProduct) {
+          unitDisplay.textContent =
+            selectedProduct.unit === "kg" ? "grams" : selectedProduct.unit;
+        }
+      }
+
+      function calculatePrice() {
+        if (!selectedProduct) return;
+
+        const quantity = parseFloat(
+          document.getElementById("quantity-input").value
+        );
+        if (!quantity || quantity <= 0) {
+          updatePriceDisplay("Enter quantity to see price");
+          return;
         }
 
-        function removeFromCart(itemId) {
-            cart = cart.filter(item => item.id !== itemId);
-            updateCartDisplay();
+        // Convert grams to kg if the product is priced per kg
+        let calculatedQuantity = quantity;
+        if (selectedProduct.unit === "kg") {
+          calculatedQuantity = quantity / 1000; // Convert grams to kg
         }
 
-        function updateCartDisplay() {
-            const cartItemsDiv = document.getElementById('cart-items');
-            const cartTotalDiv = document.getElementById('cart-total');
-            const proceedBtn = document.getElementById('proceed-btn');
+        const basePrice = selectedProduct.price * calculatedQuantity;
 
-            if (cart.length === 0) {
-                cartItemsDiv.innerHTML = '<div class="empty-cart">Your cart is empty. Add some products to get started!</div>';
-                cartTotalDiv.style.display = 'none';
-                proceedBtn.disabled = true;
-                return;
+        // Calculate tax
+        let taxAmount = 0;
+        if (selectedProduct.tax > 0) {
+          if (selectedProduct.taxType === "percentage") {
+            taxAmount = basePrice * (selectedProduct.tax / 100);
+          } else {
+            // Fixed tax amount
+            taxAmount = selectedProduct.tax * calculatedQuantity;
+          }
+        }
+
+        const totalPrice = basePrice + taxAmount;
+
+        // Create detailed price display
+        let priceText = `Base: ₹${basePrice.toFixed(2)}`;
+        if (taxAmount > 0) {
+          const taxDisplay =
+            selectedProduct.taxType === "percentage"
+              ? `${selectedProduct.tax}%`
+              : `₹${selectedProduct.tax}`;
+          priceText += ` + Tax (${taxDisplay}): ₹${taxAmount.toFixed(2)}`;
+        }
+        priceText += ` = ₹${totalPrice.toFixed(2)}`;
+        priceText += ` for ${quantity} ${
+          selectedProduct.unit === "kg" ? "grams" : selectedProduct.unit
+        }`;
+
+        updatePriceDisplay(priceText);
+      }
+
+      function updatePriceDisplay(text) {
+        document.getElementById("price-display").textContent = text;
+      }
+
+      function addToCart() {
+        if (!selectedProduct) {
+          showError("Please select a product");
+          return;
+        }
+
+        const quantity = parseFloat(
+          document.getElementById("quantity-input").value
+        );
+        if (!quantity || quantity <= 0) {
+          showError("Please enter a valid quantity");
+          return;
+        }
+
+        // Convert grams to kg if needed for calculation
+        let calculatedQuantity = quantity;
+        if (selectedProduct.unit === "kg") {
+          calculatedQuantity = quantity / 1000;
+        }
+
+        const basePrice = selectedProduct.price * calculatedQuantity;
+
+        // Calculate tax
+        let taxAmount = 0;
+        if (selectedProduct.tax > 0) {
+          if (selectedProduct.taxType === "percentage") {
+            taxAmount = basePrice * (selectedProduct.tax / 100);
+          } else {
+            taxAmount = selectedProduct.tax * calculatedQuantity;
+          }
+        }
+
+        const totalPrice = basePrice + taxAmount;
+
+        const cartItem = {
+          id: Date.now(), // Simple ID for removal
+          productId: selectedProduct.id,
+          name: selectedProduct.name,
+          quantity: quantity,
+          unit: selectedProduct.unit === "kg" ? "grams" : selectedProduct.unit,
+          price: selectedProduct.price,
+          basePrice: basePrice,
+          tax: selectedProduct.tax,
+          taxType: selectedProduct.taxType,
+          taxAmount: taxAmount,
+          totalPrice: totalPrice,
+        };
+
+        cart.push(cartItem);
+        updateCartDisplay();
+
+        // Reset form
+        document.getElementById("product-select").value = "";
+        document.getElementById("quantity-input").value = "";
+        selectedProduct = null;
+        updatePriceDisplay("Select product and enter quantity");
+        hideError();
+      }
+
+      function removeFromCart(itemId) {
+        cart = cart.filter((item) => item.id !== itemId);
+        updateCartDisplay();
+      }
+
+      function updateCartDisplay() {
+        const cartItemsDiv = document.getElementById("cart-items");
+        const cartTotalDiv = document.getElementById("cart-total");
+        const proceedBtn = document.getElementById("proceed-btn");
+
+        if (cart.length === 0) {
+          cartItemsDiv.innerHTML =
+            '<div class="empty-cart">Your cart is empty. Add some products to get started!</div>';
+          cartTotalDiv.style.display = "none";
+          proceedBtn.disabled = true;
+          return;
+        }
+
+        cartItemsDiv.innerHTML = "";
+        let subtotal = 0;
+        let totalTax = 0;
+        let grandTotal = 0;
+
+        cart.forEach((item) => {
+          subtotal += item.basePrice;
+          totalTax += item.taxAmount;
+          grandTotal += item.totalPrice;
+
+          const cartItemDiv = document.createElement("div");
+          cartItemDiv.className = "cart-item";
+
+          // Create price display with tax breakdown
+          let priceDisplay = `<div class="cart-item-price">₹${item.totalPrice.toFixed(
+            2
+          )}</div>`;
+          if (item.taxAmount > 0) {
+            const taxDisplay =
+              item.taxType === "percentage" ? `${item.tax}%` : `₹${item.tax}`;
+            priceDisplay = `
+                          <div class="cart-item-price">
+                              <div class="cart-item-subtotal">Base: ₹${item.basePrice.toFixed(
+                                2
+                              )}</div>
+                              <div class="cart-item-tax">Tax (${taxDisplay}): ₹${item.taxAmount.toFixed(
+              2
+            )}</div>
+                              <div>Total: ₹${item.totalPrice.toFixed(2)}</div>
+                          </div>
+                      `;
+          }
+
+          cartItemDiv.innerHTML = `
+                      <div class="cart-item-info">
+                          <div class="cart-item-name">${item.name}</div>
+                          <div class="cart-item-details">${item.quantity} ${
+            item.unit
+          }</div>
+                          ${
+                            item.taxAmount > 0
+                              ? `<div class="tax-info">Includes tax</div>`
+                              : ""
+                          }
+                      </div>
+                      ${priceDisplay}
+                      <button class="remove-btn" onclick="removeFromCart(${
+                        item.id
+                      })">✕</button>
+                  `;
+          cartItemsDiv.appendChild(cartItemDiv);
+        });
+
+        // Update totals display
+        document.getElementById("subtotal").textContent = `₹${subtotal.toFixed(
+          2
+        )}`;
+        document.getElementById("tax-total").textContent = `₹${totalTax.toFixed(
+          2
+        )}`;
+        document.getElementById("total").textContent = `₹${grandTotal.toFixed(
+          2
+        )}`;
+
+        cartTotalDiv.style.display = "block";
+        proceedBtn.disabled = false;
+      }
+
+      async function proceedToPayment() {
+        if (cart.length === 0) return;
+
+        try {
+          // Call backend to create Razorpay order
+        const customerName = prompt("Enter Customer Name:");
+        const customerPhone = prompt("Enter Customer Phone:");
+
+            if (!customerName || !customerPhone) {
+            alert("Customer name and phone are required!");
+            return;
             }
+          const response = await fetch(
+            "http://localhost:3000/api/create-order",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              //   body: JSON.stringify({
+              //     // amount: document.getElementById("total").textContent, // in rupees
+              //     amount: 100
+              //   }),
+              // Prompt for customer details
+            
 
-            cartItemsDiv.innerHTML = '';
-            let subtotal = 0;
-            let totalTax = 0;
-            let grandTotal = 0;
+            body: JSON.stringify({
+            customerName: customerName,
+            customerPhone: customerPhone,
+            items: [
+                { name: "Rice", qty: 2, price: 50 },
+                { name: "Urad Dal", qty: 1, price: 120 },
+            ],
+            tax: 5,
+            }),
+            }
+          );
 
-            cart.forEach(item => {
-                subtotal += item.basePrice;
-                totalTax += item.taxAmount;
-                grandTotal += item.totalPrice;
-                
-                const cartItemDiv = document.createElement('div');
-                cartItemDiv.className = 'cart-item';
-                
-                // Create price display with tax breakdown
-                let priceDisplay = `<div class="cart-item-price">₹${item.totalPrice.toFixed(2)}</div>`;
-                if (item.taxAmount > 0) {
-                    const taxDisplay = item.taxType === 'percentage' 
-                        ? `${item.tax}%` 
-                        : `₹${item.tax}`;
-                    priceDisplay = `
-                        <div class="cart-item-price">
-                            <div class="cart-item-subtotal">Base: ₹${item.basePrice.toFixed(2)}</div>
-                            <div class="cart-item-tax">Tax (${taxDisplay}): ₹${item.taxAmount.toFixed(2)}</div>
-                            <div>Total: ₹${item.totalPrice.toFixed(2)}</div>
-                        </div>
-                    `;
+          const order = await response.json();
+
+          if (!order.success) {
+            alert("Error creating order");
+            return;
+          }
+
+          // Razorpay options
+          const options = {
+            key: "rzp_live_1eTu3s4ZsUzeyD", // Replace with your Razorpay Key ID
+            amount: 100, // amount in paise
+            currency: order.currency,
+            name: "Akash Provisional Store",
+            description: "The Digita Kirani Store",
+            order_id: order.id,
+            handler: async function (response) {
+              // Call backend to verify payment & send invoice
+              const res = await fetch(
+                "http://localhost:3000/api/payment/verify",
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    razorpay_order_id: response.razorpay_order_id,
+                    razorpay_payment_id: response.razorpay_payment_id,
+                    razorpay_signature: response.razorpay_signature,
+                    invoiceId: order.invoiceId, // from create-order response
+                  }),
                 }
-                
-                cartItemDiv.innerHTML = `
-                    <div class="cart-item-info">
-                        <div class="cart-item-name">${item.name}</div>
-                        <div class="cart-item-details">${item.quantity} ${item.unit}</div>
-                        ${item.taxAmount > 0 ? `<div class="tax-info">Includes tax</div>` : ''}
-                    </div>
-                    ${priceDisplay}
-                    <button class="remove-btn" onclick="removeFromCart(${item.id})">✕</button>
-                `;
-                cartItemsDiv.appendChild(cartItemDiv);
-            });
+              );
 
-            // Update totals display
-            document.getElementById('subtotal').textContent = `₹${subtotal.toFixed(2)}`;
-            document.getElementById('tax-total').textContent = `₹${totalTax.toFixed(2)}`;
-            document.getElementById('total').textContent = `₹${grandTotal.toFixed(2)}`;
-            
-            cartTotalDiv.style.display = 'block';
-            proceedBtn.disabled = false;
-        }
+              const result = await res.json();
 
-        function proceedToPayment() {
-            if (cart.length === 0) return;
-            
-            // Store cart data in sessionStorage for the payment page
-            sessionStorage.setItem('cart', JSON.stringify(cart));
-            sessionStorage.setItem('total', document.getElementById('total').textContent);
-            
-            // Navigate to payment page
-            window.location.href = 'payment.html';
+              if (result.success) {
+                alert("Payment successful & invoice sent via WhatsApp!");
+              } else {
+                alert(
+                  "Payment successful but invoice sending failed: " +
+                    result.message
+                );
+              }
+            },
+            prefill: {
+              name: "Customer Name",
+              email: "customer@example.com",
+              contact: "9999999999",
+            },
+            theme: {
+              color: "#3399cc",
+            },
+          };
+
+          const rzp1 = new Razorpay(options);
+          rzp1.open();
+        } catch (error) {
+          console.error("Payment failed", error);
+          alert("Something went wrong");
         }
+      }
     </script>
-</body>
+  </body>
 </html>
