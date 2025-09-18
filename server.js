@@ -20,50 +20,30 @@ const razorpay = new Razorpay({
 
 
 mongoose.connect('mongodb://localhost:27017/invoiceDB', { useNewUrlParser: true, useUnifiedTopology: true });
-const invoiceSchema = new mongoose.Schema({     
-    
+const productSchema = new mongoose.Schema({
+    name: String,
+    price: Number
 });
-const Invoice = mongoose.model('Invoice', invoiceSchema);
+const Product = mongoose.model('Product', productSchema);
 
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/public/home/index.html');
 });
 
 
-
-
+app.get('/api/get-products',(req,res)=>{   
+    Product.find({},(err,products)=>{
+        if(err){
+            return res.status(500).json({success:false,message:"Failed to retrieve products"});
+        }
+        res.json({success:true,products});
+    });
+});
 
 app.post("/api/generate-payment-qr", async (req, res) => {
-  try {
-    const { amount, currency } = req.body;
-
-    // 1. Create Razorpay order
-    const options = {
-      amount: amount * 100, // amount in paise
-      currency: currency || "INR",
-    };
-
-    const order = await razorpay.orders.create(options);
-
-    // 2. Payment URL (customers can scan or click this)
-    const paymentUrl = `https://checkout.razorpay.com/v1/checkout.js?order_id=${order.id}`;
-
-    // 3. Generate QR Code from payment URL
-    const qrCodeDataUrl = await QRCode.toDataURL(paymentUrl);
-
-    // 4. Send back QR + order details
-    res.json({
-      success: true,
-      orderId: order.id,
-      amount: order.amount,
-      currency: order.currency,
-      qrCode: qrCodeDataUrl, // base64 string (can be shown in <img src="...">)
-    });
-  } catch (err) {
-    console.error("Error generating payment QR:", err);
-    res.status(500).json({ success: false, message: "Failed to generate QR" });
-  }
+  
 });
+
 
 app.post('/api/send-invoice', async (req, res) => {
     
