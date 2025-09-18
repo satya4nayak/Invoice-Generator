@@ -86,8 +86,98 @@ app.get('/api/get-products', async (req, res) => {
 
 
 app.post("/api/generate-payment-qr", async (req, res) => {
-  
+  try {
+    const { amount, customerName, customerPhone, items, tax } = req.body;
+
+    // Step 1: Create Razorpay Order (amount in paise)
+    const order = await razorpay.orders.create({
+      amount: amount, // already in paise (5000 = ₹50.00)
+      currency: "INR",
+      receipt: "receipt_" + Date.now(),
+      payment_capture: 1
+    });
+
+    // Step 2: Generate Payment URL for this order
+    const paymentUrl = `upi://pay?pa=YOUR_VPA_ID@okicici&pn=${encodeURIComponent(
+      customerName
+    )}&am=${amount / 100}&cu=INR&tn=Invoice%20Payment%20${order.id}`;
+
+    // Step 3: Generate QR Code
+    const qrCode = await QRCode.toDataURL(paymentUrl);
+
+    // Step 4: Return QR and order details to frontend
+    res.json({
+      success: true,
+      orderId: order.id,
+      qrCode, // Base64 string
+      paymentUrl
+    });
+
+    // Optional: Store customer + order in DB (so you can check payment later)
+  } catch (err) {
+    console.error("Error generating payment QR:", err);
+    res.status(500).json({ success: false, message: "Failed to generate QR" });
+  }
 });
+
+
+
+// Store pending orders in memory (for demo)
+const pendingOrders = {};
+
+app.post("/api/payment-webhook", express.json({ type: "*/*" }), async (req, res) => {
+  try {
+    const payload = req.body;
+    const orderId = payload.payload.payment.entity.order_id;
+
+    if (pendingOrders[orderId]) {
+      const invoiceData = pendingOrders[orderId];
+
+      // Call invoice generator automatically
+      const { customerName, customerPhone, items, tax } = invoiceData;
+
+      const invoiceNumber = "INV-" + Date.now();
+      const subtotal = items.reduce((sum, i) => sum + i.qty * i.price, 0);
+      const total = subtotal + (subtotal * tax) / 100;
+
+      const invoiceDoc = new Invoice({
+        customerName,
+        customerPhone,
+        items,
+        tax,
+        total,
+        invoiceNumber,
+      });
+      await invoiceDoc.save();
+
+      // Generate PDF
+      if (!fs.existsSync("./invoices")) fs.mkdirSync("./invoices");
+      const filePath = `./invoices/${invoiceNumber}.pdf`;
+      await generateInvoicePDF(invoiceDoc, filePath);
+
+      const mediaUrl = `/invoices/${invoiceNumber}.pdf`;
+
+      await client.messages.create({
+        from: "whatsapp:+14155238886", // Twilio sandbox
+        to: `whatsapp:${customerPhone}`,
+        body: `✅ Payment received!\nHere is your invoice #${invoiceNumber}`,
+        mediaUrl: [mediaUrl],
+      });
+
+      delete pendingOrders[orderId]; // cleanup
+
+      console.log("Invoice sent after payment success.");
+    }
+
+    res.json({ status: "ok" });
+  } catch (err) {
+    console.error("Webhook Error:", err);
+    res.status(500).json({ status: "failed" });
+  }
+});
+
+
+
 
 
 app.post('/api/send-invoice', async (req, res) => {
