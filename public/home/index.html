@@ -421,7 +421,19 @@
                     throw new Error('Failed to load products');
                 }
                 
-                products = await response.json();
+                const data = await response.json();
+
+                // Handle different response formats
+                if (Array.isArray(data)) {
+                    products = data;
+                } else if (data && typeof data === 'object' && (data._id || data.id || data.name)) {
+                    // Single product, wrap in array
+                    products = [data];
+                } else {
+                    console.error('Unexpected data format:', data);
+                    throw new Error('Invalid data format');
+                }
+
                 populateProductSelect();
                 hideError();
             } catch (error) {
@@ -434,16 +446,21 @@
             const select = document.getElementById('product-select');
             select.innerHTML = '<option value="">Choose a product...</option>';
             
-            products.forEach(product => {
-                const option = document.createElement('option');
-                option.value = product.id || product.name;
-                option.textContent = product.name;
-                option.dataset.price = product.price;
-                option.dataset.unit = product.unit || 'kg';
-                option.dataset.tax = product.tax || 0; // Tax percentage or amount
-                option.dataset.taxType = product.taxType || 'percentage'; // 'percentage' or 'fixed'
-                select.appendChild(option);
-            });
+            if (Array.isArray(products)) {
+                products.forEach(product => {
+                    const option = document.createElement('option');
+                    option.value = product._id?.$oid || product.id || product.name;
+                    option.textContent = product.name;
+                    option.dataset.price = product.price;
+                    option.dataset.unit = product.unit || 'kg';
+                    option.dataset.tax = product.tax || 0;
+                    option.dataset.taxType = product.taxType || 'percentage';
+                    select.appendChild(option);
+                });
+            } else {
+                console.error('Products is not an array:', products);
+                select.innerHTML = '<option value="">Error loading products</option>';
+            }
         }
 
         function showError(message) {

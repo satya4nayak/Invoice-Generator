@@ -14,6 +14,13 @@ const authToken = process.env.AUTH_ID;
 const client = twilio(accountSid, authToken);
 const app = express();
 const port = 3000;
+const cors = require("cors");
+
+// Allow all origins (for development)
+app.use(cors());
+
+// OR restrict to your frontend
+// app.use(cors({ origin: "http://127.0.0.1:5500" }));
 
 //Aswin chutiya
 app.use(bodyParser.json());
@@ -28,8 +35,7 @@ const razorpay = new Razorpay({
 
 
 
-mongoose
-  .connect("mongodb://localhost:27017/invoiceDB", {
+mongoose.connect("mongodb://localhost:27017/invoiceDB", {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
@@ -132,6 +138,9 @@ app.post('/api/send-invoice', async (req, res) => {
     res.status(500).json({ success: false, message: "Failed to send invoice" });
   }
 });
+
+
+
 
 
 app.listen(port, () => {
