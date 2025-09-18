@@ -28,25 +28,62 @@ const razorpay = new Razorpay({
 
 
 
-mongoose.connect('mongodb://localhost:27017/invoiceDB', { useNewUrlParser: true, useUnifiedTopology: true });
-const invoiceSchema = new mongoose.Schema({     
-    
+mongoose
+  .connect("mongodb://localhost:27017/invoiceDB", {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("Connected to MongoDB"))
+  .catch((err) => console.error("MongoDB connection error:", err));
+const invoiceSchema = new mongoose.Schema({
+  customerName: String,
+  customerPhone: String,
+  items: [
+    {
+      name: String,
+      qty: Number,
+      price: Number
+    }
+  ],
+  tax: Number,
+  total: Number,
+  invoiceNumber: String,
+  date: { type: Date, default: Date.now }
 });
 const Invoice = mongoose.model('Invoice', invoiceSchema);
+
+
+
+
+
+
+
+const productSchema = new mongoose.Schema({
+    name: String,
+    price: Number
+});
+const Product = mongoose.model('Product', productSchema);
+
+
+
+
+
 
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/public/home/index.html');
 });
 
 
-app.get('/api/get-products',(req,res)=>{   
-    Product.find({},(err,products)=>{
-        if(err){
-            return res.status(500).json({success:false,message:"Failed to retrieve products"});
-        }
-        res.json({success:true,products});
-    });
+app.get('/api/get-products', async (req, res) => {
+  try {
+    const products = await Product.find({});
+    res.json({ success: true, products });
+  } catch (err) {
+    console.error("Error fetching products:", err);
+    res.status(500).json({ success: false, message: "Failed to retrieve products" });
+  }
 });
+
 
 app.post("/api/generate-payment-qr", async (req, res) => {
   
