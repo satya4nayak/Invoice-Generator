@@ -87,7 +87,7 @@ const crypto = require("crypto");
 app.post("/api/create-order", async (req, res) => {
   try {
     const { customerName, customerPhone, items, tax } = req.body;
-
+    
     // Calculate totals
     const subtotal = items.reduce((sum, i) => sum + i.qty * i.price, 0);
     const total = subtotal + (subtotal * tax) / 100;
@@ -171,10 +171,13 @@ app.post("/api/send-invoice", async (req, res) => {
 
 // Step 2: Verify Payment Signature
 app.post("/api/payment/verify", async (req, res) => {
+    const { razorpay, invoiceId } =req.body;
+    const customer = await Invoice.findOne({ _id: new mongoose.Types.ObjectId(invoiceId) });
+    console.log(customer);
   try {
     await axios.post(`http://localhost:3000/api/send-invoice`, {
-      customerName: "Aswin",
-      customerPhone: "9902227821",
+      customerName: customer.customerName || "Aswin",
+      customerPhone: customer.customerPhone || "9902227821",
       items: [
         {
           name: "Rice",
