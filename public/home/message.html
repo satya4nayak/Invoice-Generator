@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Generator - Payment Status</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: white;
+            border-radius: 25px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+            overflow: hidden;
+            text-align: center;
+        }
+
+        .status-header {
+            padding: 50px 30px;
+            color: white;
+        }
+
+        .success-header {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+        }
+
+        .failure-header {
+            background: linear-gradient(45deg, #ff4757, #ff3742);
+        }
+
+        .status-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            animation: bounceIn 0.8s ease-out;
+        }
+
+        .status-title {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .status-subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .status-content {
+            padding: 40px;
+        }
+
+        .payment-details {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border-left: 5px solid #4CAF50;
+        }
+
+        .failure .payment-details {
+            border-left-color: #ff4757;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .detail-row:last-child {
+            margin-bottom: 0;
+            font-weight: bold;
+            font-size: 1.3em;
+            border-top: 2px solid #e9ecef;
+            padding-top: 15px;
+        }
+
+        .detail-label {
+            color: #666;
+        }
+
+        .detail-value {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .success .detail-value {
+            color: #4CAF50;
+        }
+
+        .failure .detail-value {
+            color: #ff4757;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .btn-retry {
+            background: linear-gradient(45deg, #ff4757, #ff3742);
+            color: white;
+            box-shadow: 0 5px 15px rgba(255, 71, 87, 0.3);
+        }
+
+        .btn-retry:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(255, 71, 87, 0.4);
+        }
+
+        .back-button {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            font-weight: 600;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .countdown-timer {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 25px;
+            margin: 20px 0;
+            font-weight: 600;
+            font-size: 1.1em;
+            display: inline-block;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .countdown-number {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #fff200;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes bounceIn {
+            0% {
+                transform: scale(0.3);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.1);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .message-box {
+            background: #e8f5e8;
+            border: 2px solid #4CAF50;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            color: #2e7d32;
+        }
+
+        .failure .message-box {
+            background: #ffebee;
+            border-color: #ff4757;
+            color: #c62828;
+        }
+
+        .error-details {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            color: #856404;
+            text-align: left;
+        }
+
+        .customer-info {
+            background: #e3f2fd;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        .customer-info h4 {
+            color: #1976d2;
+            margin-bottom: 10px;
+        }
+
+        .customer-info p {
+            margin-bottom: 5px;
+            color: #424242;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                max-width: none;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .status-icon {
+                font-size: 3em;
+            }
+
+            .status-title {
+                font-size: 1.8em;
+            }
+
+            .status-content {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="status-container">
+        <button class="back-button" onclick="goBackToHome()" title="Back to Home">
+            ← Back to Home
+        </button>
+        <!-- Content will be loaded dynamically -->
+    </div>
+
+    <script>
+        let paymentResult = null;
+        let customerData = null;
+        let countdownTimer = null;
+        let remainingTime = 15; // 15 seconds countdown
+
+        // Load payment result on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPaymentResult();
+        });
+
+        function loadPaymentResult() {
+            const resultData = sessionStorage.getItem('paymentResult');
+            const custData = sessionStorage.getItem('customerData');
+            
+            if (!resultData) {
+                // If no payment result, redirect to home
+                window.location.href = 'index.html';
+                return;
+            }
+
+            paymentResult = JSON.parse(resultData);
+            if (custData) {
+                customerData = JSON.parse(custData);
+            }
+
+            displayPaymentStatus();
+            
+            // Start countdown only for successful payments
+            if (paymentResult.status === 'success') {
+                startCountdown();
+            }
+        }
+
+        function startCountdown() {
+            // Update countdown display immediately
+            updateCountdownDisplay();
+            
+            countdownTimer = setInterval(() => {
+                remainingTime--;
+                updateCountdownDisplay();
+                
+                if (remainingTime <= 0) {
+                    clearInterval(countdownTimer);
+                    // Auto redirect to home page
+                    goBackToHome();
+                }
+            }, 1000);
+        }
+
+        function updateCountdownDisplay() {
+            const countdownElement = document.getElementById('countdown-display');
+            if (countdownElement) {
+                countdownElement.innerHTML = `
+                    🕒 Redirecting to home page in <span class="countdown-number">${remainingTime}</span> seconds
+                `;
+            }
+        }
+
+        function goBackToHome() {
+            // Clear any running timers
+            if (countdownTimer) {
+                clearInterval(countdownTimer);
+            }
+            // Clear session storage and go to home
+            sessionStorage.clear();
+            window.location.href = 'index.html';
+        }
+
+        function displayPaymentStatus() {
+            const container = document.getElementById('status-container');
+            
+            if (paymentResult.status === 'success') {
+                displaySuccessPage();
+            } else {
+                displayFailurePage();
+            }
+        }
+
+        function displaySuccessPage() {
+            const container = document.getElementById('status-container');
+            container.className = 'container success';
+            
+            container.innerHTML = `
+                <div class="status-header success-header">
+                    <div class="status-icon">🎉</div>
+                    <div class="status-title">Payment Successful!</div>
+                    <div class="status-subtitle">Your order has been processed successfully</div>
+                </div>
+                
+                <div class="status-content">
+                    <div class="message-box">
+                        <strong>Thank you for your payment!</strong><br>
+                        Your invoice has been generated and the order is being processed.
+                    </div>
+
+                    ${customerData ? `
+                    <div class="customer-info">
+                        <h4>📋 Order Details</h4>
+                        <p><strong>Customer:</strong> ${customerData.name}</p>
+                        <p><strong>Phone:</strong> ${customerData.phone}</p>
+                        ${customerData.whatsapp !== customerData.phone ? `<p><strong>WhatsApp:</strong> ${customerData.whatsapp}</p>` : ''}
+                        <p><strong>Items:</strong> ${customerData.cart.length} item(s)</p>
+                    </div>
+                    ` : ''}
+
+                    <div class="payment-details">
+                        <div class="detail-row">
+                            <span class="detail-label">Payment ID:</span>
+                            <span class="detail-value">${paymentResult.paymentId}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Transaction Date:</span>
+                            <span class="detail-value">${new Date().toLocaleString()}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Amount Paid:</span>
+                            <span class="detail-value">${paymentResult.amount}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Status:</span>
+                            <span class="detail-value">✅ Completed</span>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="generateInvoice()">
+                            📄 Generate Invoice
+                        </button>
+                        <button class="btn btn-secondary" onclick="newOrder()">
+                            🛒 New Order
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            // Trigger backend process for successful payment
+            triggerBackendProcess();
+        }
+
+        function displayFailurePage() {
+            const container = document.getElementById('status-container');
+            container.className = 'container failure';
+            
+            container.innerHTML = `
+                <div class="status-header failure-header">
+                    <div class="status-icon">❌</div>
+                    <div class="status-title">Payment Failed</div>
+                    <div class="status-subtitle">There was an issue processing your payment</div>
+                </div>
+                
+                <div class="status-content">
+                    <div class="message-box">
+                        <strong>Payment could not be completed</strong><br>
+                        Please check your payment details and try again.
+                    </div>
+
+                    <div class="payment-details">
+                        <div class="detail-row">
+                            <span class="detail-label">Transaction ID:</span>
+                            <span class="detail-value">${paymentResult.paymentId}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Attempt Date:</span>
+                            <span class="detail-value">${new Date().toLocaleString()}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Amount:</span>
+                            <span class="detail-value">${paymentResult.amount}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Status:</span>
+                            <span class="detail-value">❌ Failed</span>
+                        </div>
+                    </div>
+
+                    <div class="error-details">
+                        <strong>Common reasons for payment failure:</strong>
+                        <ul style="margin-top: 10px; margin-left: 20px;">
+                            <li>Insufficient balance in account</li>
+                            <li>Network connectivity issues</li>
+                            <li>Payment timeout</li>
+                            <li>Bank server issues</li>
+                        </ul>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn btn-retry" onclick="retryPayment()">
+                            🔄 Retry Payment
+                        </button>
+                        <button class="btn btn-secondary" onclick="newOrder()">
+                            🏠 Back to Home
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function triggerBackendProcess() {
+            try {
+                // Call backend API to process successful payment
+                const response = await fetch('http://localhost:3000/api/process-successful-payment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        paymentId: paymentResult.paymentId,
+                        customerData: customerData,
+                        amount: paymentResult.amount
+                    })
+                });
+
+                if (!response.ok) {
+                    console.warn('Backend processing failed, but payment was successful');
+                }
+            } catch (error) {
+                console.error('Error triggering backend process:', error);
+            }
+        }
+
+        function generateInvoice() {
+            const btn = event.target;
+            btn.disabled = true;
+            btn.innerHTML = '<div class="loading"></div>Generating...';
+
+            // Simulate invoice generation
+            setTimeout(() => {
+                alert('📄 Invoice generated successfully! (This would normally download/email the invoice)');
+                btn.disabled = false;
+                btn.innerHTML = '📄 Generate Invoice';
+            }, 2000);
+        }
+
+        function retryPayment() {
+            // Go back to payment page with existing data
+            window.location.href = 'payment.html';
+        }
+
+        function newOrder() {
+            // Clear session storage and go to home
+            sessionStorage.clear();
+            window.location.href = 'index.html';
+        }
+
+        // Prevent going back to payment page after successful payment
+        window.addEventListener('popstate', function(event) {
+            if (paymentResult && paymentResult.status === 'success') {
+                event.preventDefault();
+                history.pushState(null, null, window.location.href);
+            }
+        });
+
+        // Push initial state to prevent back navigation on success
+        if (paymentResult && paymentResult.status === 'success') {
+            history.pushState(null, null, window.location.href);
+        }
+    </script>
+</body>
+</html>
