@@ -84,98 +84,98 @@ app.get('/api/get-products', async (req, res) => {
   }
 });
 
+const crypto = require("crypto");
 
-app.post("/api/generate-payment-qr", async (req, res) => {
+// Step 1: Generate Razorpay Order
+app.post("/api/create-order", async (req, res) => {
   try {
-    const { amount, customerName, customerPhone, items, tax } = req.body;
+    const { customerName, customerPhone, items, tax } = req.body;
 
-    // Step 1: Create Razorpay Order (amount in paise)
-    const order = await razorpay.orders.create({
-      amount: amount, // already in paise (5000 = ₹50.00)
-      currency: "INR",
-      receipt: "receipt_" + Date.now(),
-      payment_capture: 1
+    // Calculate totals
+    const subtotal = items.reduce((sum, i) => sum + i.qty * i.price, 0);
+    const total = subtotal + (subtotal * tax) / 100;
+    const invoiceNumber = "INV-" + Date.now();
+
+    // Save invoice draft in DB
+    const invoiceDoc = new Invoice({
+      customerName,
+      customerPhone,
+      items,
+      tax,
+      total,
+      invoiceNumber,
     });
+    await invoiceDoc.save();
 
-    // Step 2: Generate Payment URL for this order
-    const paymentUrl = `upi://pay?pa=YOUR_VPA_ID@okicici&pn=${encodeURIComponent(
-      customerName
-    )}&am=${amount / 100}&cu=INR&tn=Invoice%20Payment%20${order.id}`;
+    // Create Razorpay order
+    const orderOptions = {
+      amount: total * 100, // in paise
+      currency: "INR",
+      receipt: invoiceNumber,
+      payment_capture: 1,
+    };
+    const order = await razorpay.orders.create(orderOptions);
 
-    // Step 3: Generate QR Code
-    const qrCode = await QRCode.toDataURL(paymentUrl);
-
-    // Step 4: Return QR and order details to frontend
     res.json({
       success: true,
       orderId: order.id,
-      qrCode, // Base64 string
-      paymentUrl
+      amount: order.amount,
+      currency: order.currency,
+      key: process.env.RZP_KEY_ID,
+      invoiceId: invoiceDoc._id,
     });
-
-    // Optional: Store customer + order in DB (so you can check payment later)
   } catch (err) {
-    console.error("Error generating payment QR:", err);
-    res.status(500).json({ success: false, message: "Failed to generate QR" });
+    console.error("Error creating order:", err);
+    res.status(500).json({ success: false, message: "Failed to create order" });
   }
 });
 
 
-
-// Store pending orders in memory (for demo)
-const pendingOrders = {};
-
-app.post("/api/payment-webhook", express.json({ type: "*/*" }), async (req, res) => {
+// Step 2: Verify Payment Signature
+app.post("/api/payment/verify", async (req, res) => {
   try {
-    const payload = req.body;
-    const orderId = payload.payload.payment.entity.order_id;
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, invoiceId } = req.body;
 
-    if (pendingOrders[orderId]) {
-      const invoiceData = pendingOrders[orderId];
+    const body = razorpay_order_id + "|" + razorpay_payment_id;
+    const expectedSignature = crypto
+      .createHmac("sha256", process.env.RZP_KEY_SECRET)
+      .update(body.toString())
+      .digest("hex");
 
-      // Call invoice generator automatically
-      const { customerName, customerPhone, items, tax } = invoiceData;
-
-      const invoiceNumber = "INV-" + Date.now();
-      const subtotal = items.reduce((sum, i) => sum + i.qty * i.price, 0);
-      const total = subtotal + (subtotal * tax) / 100;
-
-      const invoiceDoc = new Invoice({
-        customerName,
-        customerPhone,
-        items,
-        tax,
-        total,
-        invoiceNumber,
-      });
-      await invoiceDoc.save();
-
-      // Generate PDF
-      if (!fs.existsSync("./invoices")) fs.mkdirSync("./invoices");
-      const filePath = `./invoices/${invoiceNumber}.pdf`;
-      await generateInvoicePDF(invoiceDoc, filePath);
-
-      const mediaUrl = `/invoices/${invoiceNumber}.pdf`;
-
-      await client.messages.create({
-        from: "whatsapp:+14155238886", // Twilio sandbox
-        to: `whatsapp:${customerPhone}`,
-        body: `✅ Payment received!\nHere is your invoice #${invoiceNumber}`,
-        mediaUrl: [mediaUrl],
+    if (expectedSignature === razorpay_signature) {
+      // Mark invoice as Paid
+      await Invoice.findByIdAndUpdate(invoiceId, {
+        paymentStatus: "Paid",
+        paymentId: razorpay_payment_id,
+        razorpayOrderId: razorpay_order_id,
       });
 
-      delete pendingOrders[orderId]; // cleanup
+      // Call invoice sending API
+      const invoice = await Invoice.findById(invoiceId);
+      if (invoice) {
+        // 🔥 Call your send-invoice logic here directly instead of waiting for frontend
+        if (!fs.existsSync("./invoices")) fs.mkdirSync("./invoices");
+        const filePath = `./invoices/${invoice.invoiceNumber}.pdf`;
+        await generateInvoicePDF(invoice, filePath);
 
-      console.log("Invoice sent after payment success.");
+        const mediaUrl = `/invoices/${invoice.invoiceNumber}.pdf`;
+        await client.messages.create({
+          from: "whatsapp:+14155238886",
+          to: `whatsapp:${invoice.customerPhone}`,
+          body: `Hello ${invoice.customerName}, your payment is successful. Here is your invoice #${invoice.invoiceNumber}.`,
+          mediaUrl: [mediaUrl],
+        });
+      }
+
+      return res.json({ success: true, message: "Payment verified & invoice sent!" });
+    } else {
+      return res.status(400).json({ success: false, message: "Invalid signature" });
     }
-
-    res.json({ status: "ok" });
   } catch (err) {
-    console.error("Webhook Error:", err);
-    res.status(500).json({ status: "failed" });
+    console.error("Error verifying payment:", err);
+    res.status(500).json({ success: false, message: "Payment verification failed" });
   }
 });
-
 
 
 
