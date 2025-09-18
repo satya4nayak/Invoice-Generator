@@ -13,7 +13,9 @@
     "body-parser": "^2.2.0",
     "express": "^5.1.0",
     "mongoose": "^8.18.1",
+    "pdfkit": "^0.17.2",
     "qrcode": "^1.5.4",
-    "razorpay": "^2.9.6"
+    "razorpay": "^2.9.6",
+    "twilio": "^5.9.0"
   }
 }
