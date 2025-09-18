@@ -3,6 +3,15 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const Razorpay = require("razorpay");
 const QRCode = require("qrcode");
+const PDFDocument = require("pdfkit");
+const fs = require("fs");
+const twilio = require("twilio");
+const dotenv=require("dotenv")
+dotenv.config();
+// Twilio setup
+const accountSid = process.env.ACCOUNT_SID;
+const authToken = process.env.AUTH_ID;
+const client = twilio(accountSid, authToken);
 const app = express();
 const port = 3000;
 
@@ -12,61 +21,116 @@ app.use(express.static(__dirname + "/public"));
 
 // Razorpay instance
 const razorpay = new Razorpay({
-  key_id: "rzp_live_1eTu3s4ZsUzeyD",
-  key_secret: "7fwz6xvUtYDUxWUdfEMvVtwR",
+  key_id: process.env.RZP_KEY_ID,
+  key_secret:process.env.RZP_KEY_SECRET
 });
 
 
 
 
-mongoose.connect('mongodb://localhost:27017/invoiceDB', { useNewUrlParser: true, useUnifiedTopology: true });
-const invoiceSchema = new mongoose.Schema({     
-    
+mongoose
+  .connect("mongodb://localhost:27017/invoiceDB", {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("Connected to MongoDB"))
+  .catch((err) => console.error("MongoDB connection error:", err));
+const invoiceSchema = new mongoose.Schema({
+  customerName: String,
+  customerPhone: String,
+  items: [
+    {
+      name: String,
+      qty: Number,
+      price: Number
+    }
+  ],
+  tax: Number,
+  total: Number,
+  invoiceNumber: String,
+  date: { type: Date, default: Date.now }
 });
 const Invoice = mongoose.model('Invoice', invoiceSchema);
+
+
+
+
+
+
+
+const productSchema = new mongoose.Schema({
+    name: String,
+    price: Number
+});
+const Product = mongoose.model('Product', productSchema);
+
+
+
+
+
 
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/public/home/index.html');
 });
 
 
-
-
-
-app.post("/api/generate-payment-qr", async (req, res) => {
+app.get('/api/get-products', async (req, res) => {
   try {
-    const { amount, currency } = req.body;
-
-    // 1. Create Razorpay order
-    const options = {
-      amount: amount * 100, // amount in paise
-      currency: currency || "INR",
-    };
-
-    const order = await razorpay.orders.create(options);
-
-    // 2. Payment URL (customers can scan or click this)
-    const paymentUrl = `https://checkout.razorpay.com/v1/checkout.js?order_id=${order.id}`;
-
-    // 3. Generate QR Code from payment URL
-    const qrCodeDataUrl = await QRCode.toDataURL(paymentUrl);
-
-    // 4. Send back QR + order details
-    res.json({
-      success: true,
-      orderId: order.id,
-      amount: order.amount,
-      currency: order.currency,
-      qrCode: qrCodeDataUrl, // base64 string (can be shown in <img src="...">)
-    });
+    const products = await Product.find({});
+    res.json({ success: true, products });
   } catch (err) {
-    console.error("Error generating payment QR:", err);
-    res.status(500).json({ success: false, message: "Failed to generate QR" });
+    console.error("Error fetching products:", err);
+    res.status(500).json({ success: false, message: "Failed to retrieve products" });
   }
 });
 
+
+app.post("/api/generate-payment-qr", async (req, res) => {
+  
+});
+
+
 app.post('/api/send-invoice', async (req, res) => {
-    
+  try {
+    const { customerName, customerPhone, items, tax } = req.body;
+
+    // Auto-generate invoice number
+    const invoiceNumber = "INV-" + Date.now();
+
+    // Save invoice in DB
+    const subtotal = items.reduce((sum, i) => sum + i.qty * i.price, 0);
+    const total = subtotal + (subtotal * tax) / 100;
+    const invoiceDoc = new Invoice({
+      customerName,
+      customerPhone,
+      items,
+      tax,
+      total,
+      invoiceNumber
+    });
+    await invoiceDoc.save();
+
+    // Generate invoice PDF
+    if (!fs.existsSync("./invoices")) fs.mkdirSync("./invoices");
+    const filePath = `./invoices/${invoiceNumber}.pdf`;
+    await generateInvoicePDF(invoiceDoc, filePath);
+
+    // NOTE: Twilio requires public URL, so upload this PDF to Cloudinary / S3.
+    // For now, assume you serve /invoices/ as static
+    const mediaUrl = `/invoices/${invoiceNumber}.pdf`;
+
+    await client.messages.create({
+      from: "whatsapp:+14155238886", // Twilio sandbox number
+      to: `whatsapp:${customerPhone}`,
+      body: `Hello ${customerName}, here is your invoice #${invoiceNumber}.`,
+      mediaUrl: [mediaUrl],
+    });
+
+    res.json({ success: true, message: "Invoice sent successfully!" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Failed to send invoice" });
+  }
 });
 
 
