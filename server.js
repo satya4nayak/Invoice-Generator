@@ -6,10 +6,11 @@ const QRCode = require("qrcode");
 const PDFDocument = require("pdfkit");
 const fs = require("fs");
 const twilio = require("twilio");
-
+const dotenv=require("dotenv")
+dotenv.config();
 // Twilio setup
-const accountSid = "AC122f8454ba8f1b48cc924acfd3e1e133";
-const authToken = "cbb17ece22554a518c8980b7b49e1336";
+const accountSid = process.env.ACCOUNT_SID;
+const authToken = process.env.AUTH_ID;
 const client = twilio(accountSid, authToken);
 const app = express();
 const port = 3000;
@@ -20,8 +21,8 @@ app.use(express.static(__dirname + "/public"));
 
 // Razorpay instance
 const razorpay = new Razorpay({
-  key_id: "rzp_live_1eTu3s4ZsUzeyD",
-  key_secret: "7fwz6xvUtYDUxWUdfEMvVtwR",
+  key_id: process.env.RZP_KEY_ID,
+  key_secret:process.env.RZP_KEY_SECRET
 });
 
 
